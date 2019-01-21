@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+     xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+     xmlns:georss="http://www.georss.org/georss"
+     xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+     xmlns:media="http://search.yahoo.com/mrss/"><channel>
+  <title>Tenhow's Blog</title>
+  <atom:link href="http://blog.no.mk/index.xml" rel="self" type="application/rss+xml" />
+  <link>http://blog.no.mk</link>
+  <description><![CDATA[]]></description>
+  <language>en</language>
+  <pubDate>Tue, 22 Jan 2019 01:30:12 +0800</pubDate>
+  <lastBuildDate>Tue, 22 Jan 2019 01:30:12 +0800</lastBuildDate>
+  <generator>Emacs 25.1 Org-mode 9.2</generator>
+  <webMaster>oyanglulu@gmail.com (nil)</webMaster>
+  <image>
+    <url>https://orgmode.org/img/org-mode-unicorn-logo.png</url>
+    <title>Tenhow's Blog</title>
+    <link>http://blog.no.mk</link>
+  </image>
+
+
+  <item>
+    <title>About Me</title>
+    <link>http://blog.no.mk/tenhow.html</link>
+    <author>oyanglulu@gmail.com (nil)</author>
+    <guid isPermaLink="false">http://blog.no.mk/tenhow.html</guid>
+    <pubDate>Sat, 01 Feb 1986 00:00:00 +0800</pubDate>
+
+    <description><![CDATA[]]></description>
+  </item>
+</channel>
+</rss>

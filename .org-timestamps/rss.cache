@@ -1,0 +1,5 @@
+(setq org-publish-cache (make-hash-table :test 'equal :weakness nil :size 100))
+(puthash ":project:" "rss" org-publish-cache)
+(puthash ":cache-file:" "/home/iospro/blog/public/.org-timestamps/rss.cache" org-publish-cache)
+(puthash "/home/iospro/blog/org/index.org" '(:crossrefs (((other "[[file:tenhow.org][About" "Me]]") . 128224944) ((headline "[[file:tenhow.org][About" "Me]]") . 128224944)) :index nil) org-publish-cache)
+(puthash "Xc84838dcce8aa48b3dbf85bbae636cfc2ab879c8" 1548091812 org-publish-cache)

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<!-- 2019-01-22 Tue 01:30 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReactiveCocoa Programming</title>
+<meta name="generator" content="Org mode">
+<link rel="icon" href="/favicon.ico">
+<meta name="theme-color" content="#ffffff">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/style/toc.css"/>
+<link rel="stylesheet" href="/style/tufte.css"/>
+<script src="https://hypothes.is/embed.js" async></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<header>
+    <a accesskey="h" href="/index.html"> HOME </a> |
+    <a href="#" id="edit-in-github">EDIT</a> |
+    <a accesskey="H" href="/tenhow.html">ABOUT</a> |
+    <a href="https://github.com/tenhow">GITHUB</a>
+</header>
+</div>
+<div id="content">
+<header>
+<h1 class="title">ReactiveCocoa Programming</h1>
+</header><nav id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgbfcc253">隐式转换是什么鬼</a></li>
+<li><a href="#orgd84ceef">隐式转换接受者</a>
+<ul>
+<li><a href="#orgb0dc1fb">语法糖</a></li>
+</ul>
+</li>
+<li><a href="#org2788d20">隐式转换参数</a>
+<ul>
+<li><a href="#orgc9cec9f">类型类 Type Class</a></li>
+</ul>
+</li>
+<li><a href="#org430f1ca">To Be</a></li>
+<li><a href="#org30e6656">or Not To Be</a></li>
+</ul>
+</div>
+</nav>
+
+<div id="outline-container-orgbfcc253" class="outline-2">
+<h2 id="orgbfcc253">隐式转换是什么鬼</h2>
+<div class="outline-text-2" id="text-orgbfcc253">
+<p>
+有时候，一加一等于 11，比如 JavaScript
+</p>
+<pre class="code"><code>1+<span style="color: #8b0000;">"1"</span>
+</code></pre>
+<p>
+"11"
+</p>
+
+<p>
+当两个类型不一样的东西加在一起，JavaScript选择把数组转成字符，原因也能理解，数组肯定能转成字符，而反过来则不一定，或者会有信息的丢失。
+</p>
+
+<p>
+这就是隐式转换，没有人显式的把数字类型转成字符类型，一切都默默的发生了。
+</p>
+
+<p>
+奇怪的是 scala 是强类型语言，1+"1" 编译器居然也是过的
+</p>
+
+<pre class="code"><code><span style="color: #6b8e23;">1</span> + <span style="color: #8b0000;">"1"</span>
+</code></pre>
+
+<p>
+怎么做到的？
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd84ceef" class="outline-2">
+<h2 id="orgd84ceef">隐式转换接受者</h2>
+<div class="outline-text-2" id="text-orgd84ceef">
+<p>
+如果你用的IntelliJ，光标在 <code>+</code> 号上，按 <code>cmd</code> + <code>b</code> ，就会跳转到这样一坨代码：
+</p>
+<pre class="code"><code><span style="color: #228b22;">implicit</span> <span style="color: #228b22;">final</span> <span style="color: #00008b;">class</span> <span style="color: #36648b;">any2stringadd</span>[<span style="color: #6b8e23;">A</span>](<span style="color: #228b22;">private</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">self</span><span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>) <span style="color: #00008b;">extends</span> <span style="color: #36648b;">AnyVal</span> {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">+</span>(other<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>)<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span> <span style="color: #00008b;">=</span> <span style="color: #6b8e23;">String</span>.valueOf(self) + other
+}
+</code></pre>
+
+<p>
+<code>implicit</code> 关键字代表后面这个 <code>class</code> 是隐式的，这样编译器在寻找隐式转换的时候就能找到它。
+</p>
+
+<p>
+这个 <code>any2stringadd</code> 只有一个方法 <code>+(other:String)</code> 。当编译器尝试编译 <code>1+”1“</code> 时，本身 Int 并没有 <code>+(other:String)</code> 方法，编译器在放弃之前，还会寻找所有隐式转换，当发现 <code>any2stringadd</code> 有这样一个方法是，就会尝试把 <code>Int</code> 转成 <code>any2stringadd[Int]</code> 类型。
+</p>
+</div>
+
+<div id="outline-container-orgb0dc1fb" class="outline-3">
+<h3 id="orgb0dc1fb">语法糖</h3>
+<div class="outline-text-3" id="text-orgb0dc1fb">
+<p>
+隐式转换接收对象的类型还可以轻松弄一些语法糖DSL，比如 Map
+</p>
+<pre class="code"><code><span style="color: #6b8e23;">Map</span>(<span style="color: #6b8e23;">1</span> -&gt; <span style="color: #8b0000;">"one"</span>, <span style="color: #6b8e23;">2</span> -&gt; <span style="color: #8b0000;">"two"</span>, <span style="color: #6b8e23;">3</span> -&gt; <span style="color: #8b0000;">"three"</span>)
+</code></pre>
+
+<p>
+1 -&gt; "one" 其实是 tuple <code>(1, 2)</code> ，隐式转换帮我们实现这个箭头DSL
+</p>
+
+<pre class="code"><code><span style="color: #228b22;">implicit</span> <span style="color: #228b22;">final</span> <span style="color: #00008b;">class</span> <span style="color: #36648b;">ArrowAssoc</span>[<span style="color: #6b8e23;">A</span>](<span style="color: #228b22;">private</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">self</span><span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>) <span style="color: #00008b;">extends</span> <span style="color: #36648b;">AnyVal</span> {
+   <span style="color: #00008b;">@inline</span> <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">-&gt;</span> [<span style="color: #6b8e23;">B</span>](y<span style="color: #00008b;">:</span> <span style="color: #36648b;">B</span>)<span style="color: #00008b;">:</span> <span style="color: #36648b;">Tuple2</span>[<span style="color: #6b8e23;">A</span>, <span style="color: #6b8e23;">B</span>] <span style="color: #00008b;">=</span> <span style="color: #6b8e23;">Tuple2</span>(self, y)
+   <span style="color: #00008b;">def</span> &#8594;[<span style="color: #6b8e23;">B</span>](y<span style="color: #00008b;">:</span> <span style="color: #36648b;">B</span>)<span style="color: #00008b;">:</span> <span style="color: #36648b;">Tuple2</span>[<span style="color: #6b8e23;">A</span>, <span style="color: #6b8e23;">B</span>] <span style="color: #00008b;">=</span> -&gt;(y)
+ }
+</code></pre>
+
+<p>
+同样的道理，当编译器去寻找 1 的 <code>-&gt;</code> 方法时，发现没有，但是隐式转换成 ArrowAssoc 就会具备 <code>-&gt;</code> 方法。
+</p>
+
+<p>
+这种模式很容易识别，当某个方法并不属于该类型时，那么就会隐式转换到具备该方法的类型上。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2788d20" class="outline-2">
+<h2 id="org2788d20">隐式转换参数</h2>
+<div class="outline-text-2" id="text-org2788d20">
+<p>
+除了可以隐式转换接收者，隐式转换还可以应用到参数上<label for="1" class="margin-toggle sidenote-number"></label><input type="checkbox" id="1" class="margin-toggle"/><span class="sidenote">
+<a href="http://www.artima.com/pins1ed/implicit-conversions-and-parameters.html#21.5">http://www.artima.com/pins1ed/implicit-conversions-and-parameters.html#21.5</a>
+</span>：
+</p>
+
+<pre class="code"><code><span style="color: #00008b;">class</span> <span style="color: #36648b;">PreferredPrompt</span>(<span style="color: #00008b;">val</span> <span style="color: #b8860b;">preference</span><span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>)
+<span style="color: #00008b;">class</span> <span style="color: #36648b;">PreferredDrink</span>(<span style="color: #00008b;">val</span> <span style="color: #b8860b;">preference</span><span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>)
+
+<span style="color: #00008b;">object</span> <span style="color: #6b8e23;">Greeter</span> {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">greet</span>(name<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>)(<span style="color: #228b22;">implicit</span> prompt<span style="color: #00008b;">:</span> <span style="color: #36648b;">PreferredPrompt</span>,
+    drink<span style="color: #00008b;">:</span> <span style="color: #36648b;">PreferredDrink</span>) {
+
+    println(<span style="color: #8b0000;">"Welcome, "</span>+ name +<span style="color: #8b0000;">". The system is ready."</span>)
+    print(<span style="color: #8b0000;">"But while you work, "</span>)
+    println(<span style="color: #8b0000;">"why not enjoy a cup of "</span>+ drink.preference +<span style="color: #8b0000;">"?"</span>)
+    println(prompt.preference)
+  }
+}
+<span style="color: #228b22;">implicit</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">prompt</span> <span style="color: #00008b;">=</span> <span style="color: #00008b;">new</span> <span style="color: #36648b;">PreferredPrompt</span>(<span style="color: #8b0000;">"Yes, master&gt; "</span>)
+<span style="color: #228b22;">implicit</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">drink</span> <span style="color: #00008b;">=</span> <span style="color: #00008b;">new</span> <span style="color: #36648b;">PreferredDrink</span>(<span style="color: #8b0000;">"tea"</span>)
+<span style="color: #6b8e23;">Greeter</span>.greet(<span style="color: #8b0000;">"Joe"</span>)
+</code></pre>
+
+<pre class="example">
+Welcome, Joe. The system is ready.
+But while you work, why not enjoy a cup of tea?
+Yes, master&gt; 
+</pre>
+
+
+<p>
+这里的 "tea" 和 "Yes, master" 都是从隐式转换参数 prompt 和 drink 来的，当声明两个隐式参数时，编译器会找到 implicit 定义的相同类型的 val 注入到函数中，所以调用 <code>greet</code> 时只需要给第一个参数就足够了。
+</p>
+</div>
+
+<div id="outline-container-orgc9cec9f" class="outline-3">
+<h3 id="orgc9cec9f">类型类 Type Class</h3>
+<div class="outline-text-3" id="text-orgc9cec9f">
+<p>
+隐式转换参数最常用的还是类型类<label for="2" class="margin-toggle sidenote-number"></label><input type="checkbox" id="2" class="margin-toggle"/><span class="sidenote">
+<a href="http://typelevel.org/cats/typeclasses.html">http://typelevel.org/cats/typeclasses.html</a>
+</span>
+</p>
+
+<pre class="code"><code><span style="color: #00008b;">trait</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">A</span>] {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">show</span>(f<span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>)<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>
+}
+<span style="color: #00008b;">def</span> <span style="color: #6a5acd;">log</span>[<span style="color: #6b8e23;">A</span>](a<span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>)(<span style="color: #228b22;">implicit</span> s<span style="color: #00008b;">:</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">A</span>]) <span style="color: #00008b;">=</span> println(s.show(a))
+<span style="color: #228b22;">implicit</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">stringShow</span> <span style="color: #00008b;">=</span> <span style="color: #00008b;">new</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">String</span>] {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">show</span>(s<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>) <span style="color: #00008b;">=</span> s
+}
+log(<span style="color: #8b0000;">"a string"</span>)
+</code></pre>
+
+<pre class="example">
+a string
+Some(Some(hello))
+</pre>
+
+
+<p>
+我们来看看怎么实现类型类 <code>Show</code> 的一个实例 <code>Show[String]</code>
+</p>
+
+<ul class="org-ul">
+<li>类型类对应到scala中就是一个高阶 trait，这里既是 <code>Show[A]</code></li>
+<li>所以 <code>stringShow</code> 就是类型类 <code>Show</code> 的 <code>String</code> 实例。</li>
+<li>当编译器看到 <code>log("a string")</code> 时，确定参数的类型 <code>A</code> 为 <code>String</code></li>
+<li>这样隐式参数的类型 <code>Show[A]</code> 也被定位到 <code>Show[String]</code></li>
+<li>编译器找到隐式转换 <code>Show[String]</code> 类型的 <code>stringShow</code> 并将其注入为 <code>s</code></li>
+</ul>
+
+<p>
+要继续实现别的类型的 Show 实例，只需要继续添加隐式转换，例如 Option 的 Show 实例
+</p>
+<pre class="code"><code><span style="color: #00008b;">trait</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">A</span>] {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">show</span>(f<span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>)<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>
+}
+<span style="color: #00008b;">def</span> <span style="color: #6a5acd;">log</span>[<span style="color: #6b8e23;">A</span>](a<span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>)(<span style="color: #228b22;">implicit</span> s<span style="color: #00008b;">:</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">A</span>]) <span style="color: #00008b;">=</span> println(s.show(a))
+<span style="color: #228b22;">implicit</span> <span style="color: #00008b;">val</span> <span style="color: #b8860b;">stringShow</span> <span style="color: #00008b;">=</span> <span style="color: #00008b;">new</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">String</span>] {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">show</span>(s<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span>) <span style="color: #00008b;">=</span> s
+}
+<span style="color: #228b22;">implicit</span> <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">optionShow</span>[<span style="color: #6b8e23;">A</span>](<span style="color: #228b22;">implicit</span> sa<span style="color: #00008b;">:</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">A</span>]) <span style="color: #00008b;">=</span> <span style="color: #00008b;">new</span> <span style="color: #36648b;">Show</span>[<span style="color: #6b8e23;">Option</span>[<span style="color: #6b8e23;">A</span>]] {
+  <span style="color: #00008b;">def</span> <span style="color: #6a5acd;">show</span>(oa<span style="color: #00008b;">:</span> <span style="color: #36648b;">Option</span>[<span style="color: #6b8e23;">A</span>])<span style="color: #00008b;">:</span> <span style="color: #36648b;">String</span> <span style="color: #00008b;">=</span> oa <span style="color: #00008b;">match</span> {
+    <span style="color: #00008b;">case</span> <span style="color: #6b8e23;">None</span> <span style="color: #00008b;">=&gt;</span> <span style="color: #8b0000;">"None"</span>
+    <span style="color: #00008b;">case</span> <span style="color: #36648b;">Some</span>(<span style="color: #b8860b;">a</span>) <span style="color: #00008b;">=&gt;</span> <span style="color: #8b0000;">"Some("</span>+ sa.show(a) + <span style="color: #8b0000;">")"</span>
+  }
+}
+log(<span style="color: #6b8e23;">Option</span>(<span style="color: #6b8e23;">Option</span>(<span style="color: #8b0000;">"hello"</span>)))
+</code></pre>
+
+<pre class="example">
+Some(Some(hello))
+</pre>
+
+
+<ul class="org-ul">
+<li>同样的 <code>log(Option(Option("hello")))</code> 首先确定 <code>A</code> 类型为 <code>Option[Option[String]]</code></li>
+<li><code>Show[Option[Option[String]]]</code> 的实例可以找到 <code>optionShow</code> ，确定 <code>A</code> 这时为 <code>Option[String]</code></li>
+<li>递归的，编译器又会找到 <code>optionShow</code>, 这次 <code>A</code> 为 <code>String</code> ， <code>sa</code> 被 <code>stringShow</code> 注入</li>
+</ul>
+
+<div class="epigraph"><blockquote>
+<p>
+另一种签名也同样适用
+</p>
+<pre class="code"><code><span style="color: #00008b;">def</span> <span style="color: #6a5acd;">log</span>[<span style="color: #6b8e23;">A</span><span style="color: #00008b;">:</span> <span style="color: #36648b;">Show</span>](a<span style="color: #00008b;">:</span> <span style="color: #36648b;">A</span>) <span style="color: #00008b;">=</span> println(implicitly[<span style="color: #6b8e23;">Show</span>[<span style="color: #6b8e23;">A</span>]].show(a))
+</code></pre>
+<ul class="org-ul">
+<li><code>A:Show</code> 约束 <code>A</code> 是 <code>Show</code> 的一个实例</li>
+<li><code>implicitly[Show[A]]</code> 会去寻找类型为 <code>Show[A]</code> 隐式转换</li>
+</ul>
+
+<p>
+这是更类似于 Haskell 的签名
+</p>
+<pre class="code"><code>log<span style="color: #b8860b;">::</span>(<span style="color: #36648b;">Show</span> a) <span style="color: #b8860b;">=&gt;</span> a <span style="color: #b8860b;">-&gt;</span> <span style="color: #36648b;">String</span>
+</code></pre>
+
+<p>
+只是 Haskell 会更聪明一些，直接写 <code>show</code> 就好，无需声明 implicitly 寻找类型。
+</p>
+
+</blockquote></div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org430f1ca" class="outline-2">
+<h2 id="org430f1ca">To Be</h2>
+<div class="outline-text-2" id="text-org430f1ca">
+<ul class="org-ul">
+<li>难以衔接的第三方库</li>
+<li>DSL</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org30e6656" class="outline-2">
+<h2 id="org30e6656">or Not To Be</h2>
+<div class="outline-text-2" id="text-org30e6656">
+<ul class="org-ul">
+<li>用得太多会影响可读性</li>
+<li>如果继承，组合，重载能解决，最好别用隐式转换，但如果代码恶心又啰嗦，可以尝试使用隐式转换</li>
+</ul>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara"><p class="footpara">
+<a href="http://www.artima.com/pins1ed/implicit-conversions-and-parameters.html#21.5">http://www.artima.com/pins1ed/implicit-conversions-and-parameters.html#21.5</a>
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara"><p class="footpara">
+<a href="http://typelevel.org/cats/typeclasses.html">http://typelevel.org/cats/typeclasses.html</a>
+</p></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<footer>
+  <p>Author: Tenhow <a aria-label="Follow @tenhow on GitHub" data-count-aria-label="# followers on GitHub" data-count-api="/users/tenhow#followers" data-count-href="/tenhow/followers" href="https://github.com/tenhow" class="github-button">Follow @tenhow</a></p>
+  <p>Modified: 2019-01-22 Tue 00:43</p>
+  <p>Generated by: <a href="https://www.gnu.org/software/emacs/">Emacs</a> 25.1.1 (<a href="https://orgmode.org">Org</a> mode 9.2) &#215; <a href="https://github.com/jcouyang/orgpress">OrgPress</a></p>
+  <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/3.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License</a>.
+  <div id="danmaku-comments"></div>
+  <div id="disqus_thread"></div>
+</footer>
+</div>
+</body>
+</html>
